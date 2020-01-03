@@ -229,7 +229,7 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
 
         let diffY = view.center.y - container.center.y
         backgroundView?.alpha = 1.0 - abs(diffY/view.center.y)
-        detailView.alpha = 1.0 - abs(diffY/view.center.y)
+        detailView.alpha = backgroundView?.alpha == 1.0 ?  1.0 : 0.0
         if gestureRecognizer.state == .ended {
             if abs(diffY) > 60 {
                 executeViewDismissalAnimation(diffY)

@@ -171,6 +171,10 @@ public class ImageCarouselViewController:UIPageViewController {
         }
         return .default
     }
+    
+    public override var prefersStatusBarHidden: Bool {
+        return true
+    }
 }
 
 extension ImageCarouselViewController:UIPageViewControllerDataSource {

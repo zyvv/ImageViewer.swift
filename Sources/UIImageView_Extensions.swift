@@ -67,7 +67,7 @@ extension UIImageView {
     }
     
     public func setupImageViewer(
-        imageItems:[ImageItem],
+        imageItems:[ImageItemType],
         initialIndex:Int = 0,
         options:[ImageViewerOption] = [],
         placeholder: UIImage? = nil,
@@ -75,7 +75,7 @@ extension UIImageView {
         
         let datasource = SimpleImageDatasource(
             imageItems: imageItems.compactMap {
-                $0
+                ImageItem.model($0.url, placeholder: $0.placeholder, text: $0.text, id: $0.id)
         })
         setup(
             datasource: datasource,

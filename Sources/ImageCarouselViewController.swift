@@ -6,7 +6,7 @@ public protocol ImageDataSource:class {
 }
 
 public class ImageCarouselViewController:UIPageViewController {
-    
+    var statusBarHidden = false
     weak var imageDatasource:ImageDataSource?
     var initialIndex = 0
     var sourceView:UIImageView!
@@ -173,7 +173,11 @@ public class ImageCarouselViewController:UIPageViewController {
     }
     
     public override var prefersStatusBarHidden: Bool {
-        return true
+        return statusBarHidden
+    }
+    
+    override public var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
+        return .fade
     }
 }
 
@@ -224,5 +228,12 @@ extension ImageCarouselViewController:ImageViewerControllerDelegate {
     
     func imageViewerDidLongTap(_ imageViewer: ImageViewerController, imageItem: ImageItem) {
         detailItemDelegate?.imageViewer(self, didLongTapImageItem: imageItem)
+    }
+    
+    func imageViewercWillChangeStausBarState(_ imageViewer: ImageViewerController, statusBar hidden: Bool) {
+        statusBarHidden = hidden
+        UIView.animate(withDuration: 0.15) {
+            self.setNeedsStatusBarAppearanceUpdate()
+        }
     }
 }

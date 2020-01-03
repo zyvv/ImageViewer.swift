@@ -5,6 +5,7 @@ protocol ImageViewerControllerDelegate:class {
     func imageViewerDidClose(_ imageViewer: ImageViewerController)
     func imageViewerDidTapDetailLabel(_ imageViewer: ImageViewerController, imageItem: ImageItem)
     func imageViewerDidLongTap(_ imageViewer: ImageViewerController, imageItem: ImageItem)
+    func imageViewercWillChangeStausBarState(_ imageViewer: ImageViewerController, statusBar hidden: Bool)
 }
 
 class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
@@ -35,7 +36,7 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
             }
         }
     }
-    
+        
     // MARK: Layout Constraints
     private var top:NSLayoutConstraint!
     private var leading:NSLayoutConstraint!
@@ -227,11 +228,13 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
                 y: lastLocation.y + translation.y)
         }
 
+        self.delegate?.imageViewercWillChangeStausBarState(self, statusBar: false)
         let diffY = view.center.y - container.center.y
         backgroundView?.alpha = 1.0 - abs(diffY/view.center.y)
-        detailView.alpha = backgroundView?.alpha == 1.0 ?  1.0 : 0.0
+        detailView.alpha = 1.0 - abs(diffY/view.center.y)
         if gestureRecognizer.state == .ended {
             if abs(diffY) > 60 {
+                detailView.alpha = 0
                 executeViewDismissalAnimation(diffY)
             } else {
                 executeCancelAnimation()
@@ -250,9 +253,12 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
     func didSingleTap(_ recognizer: UITapGestureRecognizer) {
         
         let currentNavAlpha = self.navBar?.alpha ?? 0.0
+        let statusBarHidden = currentNavAlpha > 0.5 ? true : false
+        self.delegate?.imageViewercWillChangeStausBarState(self, statusBar: statusBarHidden)
         UIView.animate(withDuration: 0.15) {
             self.navBar?.alpha = currentNavAlpha > 0.5 ? 0.0 : 1.0
             self.detailView.alpha = currentNavAlpha > 0.5 ? 0.0 : 1.0
+            self.setNeedsStatusBarAppearanceUpdate()
         }
     }
     
@@ -377,6 +383,7 @@ extension ImageViewerController {
     private func executeViewDismissalAnimation(_ diffY:CGFloat) {
         isAnimating = true
         
+        setNeedsStatusBarAppearanceUpdate()
         let dummyImageView:UIImageView = UIImageView(frame: imageView.frame)
         dummyImageView.image = imageView.image
         dummyImageView.clipsToBounds = false

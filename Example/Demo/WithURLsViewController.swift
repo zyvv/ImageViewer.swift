@@ -90,10 +90,10 @@ extension WithURLsViewController:UICollectionViewDataSource {
         cell.imageView.image = images[indexPath.item]
         
         // Setup Image Viewer with [URL]
-        cell.imageView.setupImageViewer(imageItems: Data.imageUrls1, initialIndex: indexPath.item, options: [
-                       .theme(.dark),
-                        .rightNavItemTitle("Info", delegate: self)
-        ], placeholder: nil,detailItemDelegate: self)
+//        cell.imageView.setupImageViewer(imageItems: Data.imageUrls1, initialIndex: indexPath.item, options: [
+//                       .theme(.dark),
+//                        .rightNavItemTitle("Info", delegate: self)
+//        ], placeholder: nil,detailItemDelegate: self)
 
         
         return cell

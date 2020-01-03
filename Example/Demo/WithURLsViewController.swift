@@ -1,6 +1,6 @@
 import UIKit
 import ImageViewer_swift
-import SDWebImage
+import Kingfisher
 
 class WithURLsViewController:UIViewController {
     
@@ -45,7 +45,7 @@ class WithURLsViewController:UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Gallery"
-        SDImageCache.shared.clear(with: .all, completion: nil)
+        KingfisherManager.shared.cache.clearDiskCache()
     }
     
     override func viewWillLayoutSubviews() {
@@ -90,20 +90,27 @@ extension WithURLsViewController:UICollectionViewDataSource {
         cell.imageView.image = images[indexPath.item]
         
         // Setup Image Viewer with [URL]
-        cell.imageView.setupImageViewer(
-            urls: Data.imageUrls,
-            initialIndex: indexPath.item,
-            options: [
-                .theme(.dark),
-                .rightNavItemTitle("Info", delegate: self)
-            ])
+        cell.imageView.setupImageViewer(imageItems: Data.imageUrls1, initialIndex: indexPath.item, options: [
+                       .theme(.dark),
+                        .rightNavItemTitle("Info", delegate: self)
+        ], placeholder: nil,detailItemDelegate: self)
+
         
         return cell
     }
 }
 
-extension WithURLsViewController:RightNavItemDelegate {
+extension WithURLsViewController:RightNavItemDelegate, DetailItemDelegate {
     func imageViewer(_ imageViewer: ImageCarouselViewController, didTapRightNavItem index: Int) {
         print("TAPPED", index)
     }
+    
+    func imageViewer(_ imageViewer: ImageCarouselViewController, didTapDetailLabel imageItem: ImageItem) {
+        
+    }
+    
+    func imageViewer(_ imageViewer: ImageCarouselViewController, didLongTapImageItem imageItem:ImageItem) {
+        print("LOOOOONG")
+    }
+    
 }

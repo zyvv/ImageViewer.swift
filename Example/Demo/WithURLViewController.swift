@@ -1,6 +1,6 @@
 import UIKit
 import ImageViewer_swift
-import SDWebImage
+import Kingfisher
 
 class WithURLViewController:UIViewController {
     
@@ -31,6 +31,6 @@ class WithURLViewController:UIViewController {
         super.viewDidLoad()
         
         // for debugging purposes, just clear the download images
-        SDImageCache.shared.clear(with: .all, completion: nil)
+        KingfisherManager.shared.cache.clearDiskCache()
     }
 }

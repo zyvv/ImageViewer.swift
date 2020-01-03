@@ -1,4 +1,5 @@
 import UIKit
+import ImageViewer_swift
 
 struct Data {
     
@@ -29,4 +30,8 @@ struct Data {
     
     static let imageUrls:[URL] = Self.imageNames.compactMap {
         URL(string: "https://raw.githubusercontent.com/michaelhenry/MHFacebookImageViewer/master/Example/Demo/Assets.xcassets/\($0).imageset/\($0).jpg")! }
+    
+    static let imageUrls1:[ImageItem] = Self.imageNames.compactMap {
+        ImageItem.model(URL(string: "https://raw.githubusercontent.com/michaelhenry/MHFacebookImageViewer/master/Example/Demo/Assets.xcassets/\($0).imageset/\($0).jpg")!, placeholder: nil, text: "围殴uytuhgjfgfghghg规范地方广告费讲话稿给机会牙签盒物流我也可垃圾费如外人看", id: "111")
+         }
 }

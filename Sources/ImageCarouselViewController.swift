@@ -21,6 +21,8 @@ public class ImageCarouselViewController:UIPageViewController {
     
     weak var rightNavItemDelegate:RightNavItemDelegate?
     
+    weak var detailItemDelegate: DetailItemDelegate?
+    
     private(set) lazy var navBar:UINavigationBar = {
         let _navBar = UINavigationBar(frame: .zero)
         _navBar.isTranslucent = true
@@ -42,7 +44,8 @@ public class ImageCarouselViewController:UIPageViewController {
         sourceView:UIImageView,
         imageDataSource: ImageDataSource?,
         options:[ImageViewerOption] = [],
-        initialIndex:Int = 0) -> ImageCarouselViewController {
+        initialIndex:Int = 0,
+        detailLabelDelegate: DetailItemDelegate? = nil) -> ImageCarouselViewController {
         
         let pageOptions = [UIPageViewController.OptionsKey.interPageSpacing: 20]
         
@@ -58,7 +61,8 @@ public class ImageCarouselViewController:UIPageViewController {
         imageCarousel.imageDatasource = imageDataSource
         imageCarousel.options = options
         imageCarousel.initialIndex = initialIndex
-       
+        imageCarousel.detailItemDelegate = detailLabelDelegate
+        
         return imageCarousel
     }
     
@@ -208,5 +212,13 @@ extension ImageCarouselViewController:UIPageViewControllerDataSource {
 extension ImageCarouselViewController:ImageViewerControllerDelegate {
     func imageViewerDidClose(_ imageViewer: ImageViewerController) {
         sourceView.alpha = 1.0
+    }
+    
+    func imageViewerDidTapDetailLabel(_ imageViewer: ImageViewerController, imageItem: ImageItem) {
+        detailItemDelegate?.imageViewer(self, didTapDetailLabel: imageItem)
+    }
+    
+    func imageViewerDidLongTap(_ imageViewer: ImageViewerController, imageItem: ImageItem) {
+        detailItemDelegate?.imageViewer(self, didLongTapImageItem: imageItem)
     }
 }

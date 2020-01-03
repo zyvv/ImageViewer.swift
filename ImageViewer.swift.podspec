@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   }
   s.source_files = 'Sources/*'
   s.requires_arc = true
-  s.dependency 'SDWebImage'
+  s.dependency 'Kingfisher'
   s.ios.deployment_target  = '10.0'
   s.swift_versions = ['4.0','4.2','5.0']
   s.license = {

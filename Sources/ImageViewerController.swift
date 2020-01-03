@@ -1,8 +1,10 @@
 import UIKit
-import SDWebImage
+import Kingfisher
 
 protocol ImageViewerControllerDelegate:class {
     func imageViewerDidClose(_ imageViewer: ImageViewerController)
+    func imageViewerDidTapDetailLabel(_ imageViewer: ImageViewerController, imageItem: ImageItem)
+    func imageViewerDidLongTap(_ imageViewer: ImageViewerController, imageItem: ImageItem)
 }
 
 class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
@@ -25,13 +27,29 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
         return _parent.navBar
     }
     
+    var theme:ImageViewerTheme = .light {
+        didSet {
+            if detailLabel != nil {
+                detailLabel.textColor = theme.color
+                detailView.backgroundColor = theme.tintColor
+            }
+        }
+    }
+    
     // MARK: Layout Constraints
     private var top:NSLayoutConstraint!
     private var leading:NSLayoutConstraint!
     private var trailing:NSLayoutConstraint!
     private var bottom:NSLayoutConstraint!
     
+    private var labelHeight:NSLayoutConstraint!
+    private var labelLeading:NSLayoutConstraint!
+    private var labelTrailing:NSLayoutConstraint!
+    private var labelBottom:NSLayoutConstraint!
+    
     private var imageView:UIImageView!
+    private var detailView:UIView!
+    private var detailLabel:UILabel!
     private var scrollView:UIScrollView!
    
     private var lastLocation:CGPoint = .zero
@@ -50,16 +68,16 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func loadView() {
-        let view = UIView()
-        
+    override func viewDidLoad() {
+        super.viewDidLoad()
+                
         view.backgroundColor = .clear
-        self.view = view
         
         scrollView = UIScrollView()
         scrollView.delegate = self
         scrollView.showsVerticalScrollIndicator = false
-      
+        scrollView.showsHorizontalScrollIndicator = false
+        
         if #available(iOS 11.0, *) {
             scrollView.contentInsetAdjustmentBehavior = .never
         } else {
@@ -82,22 +100,49 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
         leading.isActive = true
         trailing.isActive = true
         bottom.isActive = true
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
+        
+        detailView = UIView()
+        detailView.backgroundColor = theme.tintColor
+        view.addSubview(detailView)
+        
+        detailView.translatesAutoresizingMaskIntoConstraints = false
+        labelHeight = detailView.heightAnchor.constraint(equalToConstant: 0)
+        labelLeading = detailView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        labelTrailing = view.trailingAnchor.constraint(equalTo: detailView.trailingAnchor)
+        if #available(iOS 11.0, *) {
+            labelBottom = view.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: detailView.safeAreaLayoutGuide.bottomAnchor)
+        } else {
+            labelBottom = detailView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        }
+        
+        labelHeight.isActive = true
+        labelLeading.isActive = true
+        labelTrailing.isActive = true
+        labelBottom.isActive = true
+
+        detailLabel = UILabel()
+        detailLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
+        detailLabel.numberOfLines = 0
+        detailLabel.textColor = theme.color
+        detailView.addSubview(detailLabel)
+        detailLabel.bindFrameToSuperview(top: 0, leading: 8, trailing: 8, bottom: 0)
+
         switch imageItem {
         case .image(let img):
             imageView.image = img
             imageView.layoutIfNeeded()
         case .url(let url, let placeholder):
-            imageView.sd_setImage(
-                with: url,
-                placeholderImage: placeholder ?? sourceView?.image,
-                options: [],
-                progress: nil) {[weak self] (img, err, type, url) in
-                    self?.imageView.layoutIfNeeded()
+            imageView.kf.setImage(with: url, placeholder: placeholder ?? sourceView?.image, options: nil, progressBlock: nil) { [weak self] result in
+                self?.imageView.layoutIfNeeded()
             }
+        case .model(let url, let placeholder, let text, _):
+            imageView.kf.setImage(with: url, placeholder: placeholder ?? sourceView?.image, options: nil, progressBlock: nil) { [weak self] result in
+                self?.imageView.layoutIfNeeded()
+            }
+            detailLabel.text = text
+            let s = NSString(string: text ?? "")
+            let sFrame = s.boundingRect(with: CGSize(width: UIScreen.main.bounds.width-16, height: 10000), options: .usesLineFragmentOrigin, attributes: [NSAttributedString.Key.font : UIFont.preferredFont(forTextStyle: .footnote)], context: nil)
+            labelHeight.constant = sFrame.height + 16
         default:
             break
         }
@@ -149,6 +194,17 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
         scrollView.addGestureRecognizer(doubleTapRecognizer)
        
         singleTapGesture.require(toFail: doubleTapRecognizer)
+        
+        let longTapRecoginzer = UILongPressGestureRecognizer(target: self, action: #selector(didLongTap(_:)))
+        longTapRecoginzer.minimumPressDuration = 0.25
+//        longTapRecoginzer.numberOfTouchesRequired = 1
+        scrollView.addGestureRecognizer(longTapRecoginzer)
+        longTapRecoginzer.require(toFail: singleTapGesture)
+        
+        let labelTapRecoginzer = UITapGestureRecognizer(target: self, action: #selector(didLabelTap(_:)))
+        labelTapRecoginzer.numberOfTapsRequired = 1
+        labelTapRecoginzer.numberOfTouchesRequired = 1
+        detailView.addGestureRecognizer(labelTapRecoginzer)
     }
     
     @objc
@@ -173,6 +229,7 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
 
         let diffY = view.center.y - container.center.y
         backgroundView?.alpha = 1.0 - abs(diffY/view.center.y)
+        detailView.alpha = 1.0 - abs(diffY/view.center.y)
         if gestureRecognizer.state == .ended {
             if abs(diffY) > 60 {
                 executeViewDismissalAnimation(diffY)
@@ -193,8 +250,9 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
     func didSingleTap(_ recognizer: UITapGestureRecognizer) {
         
         let currentNavAlpha = self.navBar?.alpha ?? 0.0
-        UIView.animate(withDuration: 0.235) {
+        UIView.animate(withDuration: 0.15) {
             self.navBar?.alpha = currentNavAlpha > 0.5 ? 0.0 : 1.0
+            self.detailView.alpha = currentNavAlpha > 0.5 ? 0.0 : 1.0
         }
     }
     
@@ -202,6 +260,16 @@ class ImageViewerController:UIViewController, UIGestureRecognizerDelegate {
     func didDoubleTap(_ recognizer:UITapGestureRecognizer) {
         let pointInView = recognizer.location(in: imageView)
         zoomInOrOut(at: pointInView)
+    }
+    
+    @objc
+    func didLongTap(_ recognizer: UILongPressGestureRecognizer) {
+        self.delegate?.imageViewerDidLongTap(self, imageItem: imageItem)
+    }
+    
+    @objc
+    func didLabelTap(_ recognizer: UITapGestureRecognizer) {
+        self.delegate?.imageViewerDidTapDetailLabel(self, imageItem: imageItem)
     }
 
     func gestureRecognizerShouldBegin(
@@ -275,6 +343,7 @@ extension ImageViewerController {
         
         _sourceView.alpha = 1.0
         imageView.alpha = 0.0
+        detailView.alpha = 0.0
         backgroundView?.alpha = 0.0
         isAnimating = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {[weak self] in
@@ -286,6 +355,7 @@ extension ImageViewerController {
                 _sourceView.alpha = 0.0
             }) { _ in
                 _self.imageView.alpha = 1.0
+                _self.detailView.alpha = 1.0
                 dummyImageView.removeFromSuperview()
                 _self.isAnimating = false
             }

@@ -6,8 +6,8 @@ extension UIView {
         self.translatesAutoresizingMaskIntoConstraints = false
         self.topAnchor.constraint(equalTo: superview.topAnchor, constant: top).isActive = true
         self.leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: leading).isActive = true
-        superview.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: trailing).isActive = true
-        superview.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: bottom).isActive = true
+        superview.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: bottom).isActive = true
+        superview.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: trailing).isActive = true
     }
     
     func bindFrameToSuperview(margin:CGFloat) {

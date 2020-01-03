@@ -7,6 +7,7 @@ extension UIImageView {
         var imageDatasource:ImageDataSource?
         var initialIndex:Int = 0
         var options:[ImageViewerOption] = []
+        weak var detailItemDelegate: DetailItemDelegate? = nil
     }
     
     private var vc:UIViewController? {
@@ -66,6 +67,24 @@ extension UIImageView {
     }
     
     public func setupImageViewer(
+        imageItems:[ImageItem],
+        initialIndex:Int = 0,
+        options:[ImageViewerOption] = [],
+        placeholder: UIImage? = nil,
+        detailItemDelegate: DetailItemDelegate? = nil) {
+        
+        let datasource = SimpleImageDatasource(
+            imageItems: imageItems.compactMap {
+                $0
+        })
+        setup(
+            datasource: datasource,
+            initialIndex: initialIndex,
+            options: options,
+            detailItemDelegate: detailItemDelegate)
+    }
+    
+    public func setupImageViewer(
         datasource:ImageDataSource,
         initialIndex:Int = 0,
         options:[ImageViewerOption] = []) {
@@ -79,7 +98,8 @@ extension UIImageView {
     private func setup(
         datasource:ImageDataSource?,
         initialIndex:Int = 0,
-        options:[ImageViewerOption] = []) {
+        options:[ImageViewerOption] = [],
+        detailItemDelegate: DetailItemDelegate? = nil) {
         
         var _tapRecognizer:TapWithDataRecognizer?
         gestureRecognizers?.forEach {
@@ -103,6 +123,7 @@ extension UIImageView {
         _tapRecognizer!.imageDatasource = datasource
         _tapRecognizer!.initialIndex = initialIndex
         _tapRecognizer!.options = options
+        _tapRecognizer!.detailItemDelegate = detailItemDelegate
         addGestureRecognizer(_tapRecognizer!)
     }
     
@@ -114,7 +135,8 @@ extension UIImageView {
             sourceView: sourceView,
             imageDataSource: sender.imageDatasource,
             options: sender.options,
-            initialIndex: sender.initialIndex)
+            initialIndex: sender.initialIndex,
+            detailLabelDelegate: sender.detailItemDelegate)
 
         vc?.present(imageCarousel, animated: false, completion: nil)
     }

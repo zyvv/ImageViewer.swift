@@ -7,8 +7,8 @@ public enum ImageItem {
 }
 
 public protocol ImageItemType {
-    var url: URL { get }
-    var placeholder: UIImage? { get }
-    var text: String? { get }
-    var id: String { get }
+    var imageItemUrl: URL { get }
+    var imageItemPlaceholder: UIImage? { get }
+    var imageItemText: String? { get }
+    var imageItemId: String { get }
 }

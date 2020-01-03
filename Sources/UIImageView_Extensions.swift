@@ -75,7 +75,7 @@ extension UIImageView {
         
         let datasource = SimpleImageDatasource(
             imageItems: imageItems.compactMap {
-                ImageItem.model($0.url, placeholder: $0.placeholder, text: $0.text, id: $0.id)
+                ImageItem.model($0.imageItemUrl, placeholder: $0.imageItemPlaceholder, text: $0.imageItemText, id: $0.imageItemId)
         })
         setup(
             datasource: datasource,

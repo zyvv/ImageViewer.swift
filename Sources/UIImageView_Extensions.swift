@@ -9,11 +9,7 @@ extension UIImageView {
         var options:[ImageViewerOption] = []
         weak var detailItemDelegate: DetailItemDelegate? = nil
     }
-    
-    private var vc:UIViewController? {
-        return UIApplication.shared.keyWindow?.rootViewController
-    }
-    
+
     public func setupImageViewer(
         options:[ImageViewerOption] = []) {
         setup(datasource: nil, options: options)
@@ -138,6 +134,6 @@ extension UIImageView {
             initialIndex: sender.initialIndex,
             detailLabelDelegate: sender.detailItemDelegate)
 
-        vc?.present(imageCarousel, animated: false, completion: nil)
+        sourceView.viewController()?.present(imageCarousel, animated: false, completion: nil)
     }
 }

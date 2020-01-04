@@ -17,4 +17,16 @@ extension UIView {
     func frameRelativeToWindow() -> CGRect {
         return convert(bounds, to: nil)
     }
+    
+    func viewController() -> UIViewController? {
+        var view: UIResponder? = self
+        repeat {
+            let nextResponder = view?.next
+            if nextResponder?.isKind(of: UIViewController.self) ?? false {
+                return nextResponder as? UIViewController
+            }
+            view = view?.next
+        } while view?.next != nil
+        return nil
+    }
 }
